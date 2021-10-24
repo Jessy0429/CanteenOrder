@@ -28,7 +28,7 @@
         <div v-for="(DeliveredInfo, index) in this.DeliveredInfos">
           <el-descriptions :title="DeliveredInfo.Consignee + ' ' + DeliveredInfo.Telephone" :colon="false">
             <template slot="extra">
-              <el-switch v-model="DeliveredInfo.isdefault" active-text="设为默认" @change="ChangeDefault(index)"></el-switch>
+              <el-switch v-model="DeliveredInfo.isdefault" active-text="设为默认" @change="changeDefault(index)"></el-switch>
             </template>
             <el-descriptions-item content-style="width: 100%">
               <el-row>
@@ -101,10 +101,10 @@ export default {
       dialogVisible: false,
       dialogID: undefined,
       activeNames: ['1'],
-      UserName: '周邹揪',
-      UserID: 1,
-      TelNumber: '13823367491',
-      PassWord: 'zhou20010429',
+      UserName: '',
+      UserID: null,
+      TelNumber: '',
+      PassWord: '',
       edit_UserName: '',
       edit_TelNumber: '',
       input_PW: '',
@@ -114,23 +114,27 @@ export default {
       edit_Consignee: '',
       edit_Telephone: '',
       edit_Address: '',
-      DeliveredInfos:[{Consignee:'周楠', Telephone:'13823367491', Address:'荔园八栋2504A', isdefault:true},{Consignee:'王子烨', Telephone:'13713989126', Address:'荔园四栋205', isdefault:false}]
+      DeliveredInfos:[{DeliveredID: null, Consignee:'周楠', Telephone:'13823367491', Address:'荔园八栋2504A', isdefault:true},
+        {DeliveredID: null, Consignee:'王子烨', Telephone:'13713989126', Address:'荔园四栋205', isdefault:false}]
     }
   },
   mounted() {
-    this.GetData();
+    this.getData();
   },
   methods: {
     updateInfo(){
+      let update = {}
       if (this.dialogID === 0){
         this.UserName = this.edit_UserName;
         this.edit_UserName = '';
         this.dialogVisible = false;
+        update = {username: this.UserName}
       }
       else if(this.dialogID === 1){
         this.TelNumber = this.edit_TelNumber;
         this.edit_TelNumber = '';
         this.dialogVisible = false;
+        update = {telnumber: this.TelNumber}
       }
       else if(this.dialogID === 2){
         this.checkPW = (this.input_PW === this.PassWord);
@@ -138,6 +142,7 @@ export default {
           this.PassWord = this.edit_PassWord;
           this.edit_PassWord = '';
           this.dialogVisible = false;
+          update = {password: this.PassWord}
         }
         this.edit_PassWord = '';
         this.input_PW = '';
@@ -148,18 +153,31 @@ export default {
         if(this.edit_Address) this.DeliveredInfos[this.edit_index].Address = this.edit_Address;
         this.dialogVisible = false;
       }
+
+      const url = "http://127.0.0.1:5000/api/updateUserInfo"
+      this.axios.post(url, update)
+        .then((res) => {console.log(res);})
+        .catch((error) => {
+        console.log(error);
+      })
     },
-    ChangeDefault(index){
+    changeDefault(index){
       for (let i = 0;i < this.DeliveredInfos.length; i++){
         if (i != index) this.DeliveredInfos[i].isdefault = false;
       }
     },
-    GetData(){
+    getData(){
       // 使用 axios 向 flask 发送请求
-      const url = "http://127.0.0.1:5000/api/user";
+      const url = "http://127.0.0.1:5000/api/getuserInfo";
       this.axios.get(url)
         .then((res) => {
           console.log(res.data);
+          this.UserID = res.data[0];
+          this.UserName = res.data[1];
+          this.TelNumber = res.data[2];
+          this.PassWord = res.data[3];
+          this.DeliveredInfos[0].DeliveredID = res.data[4];
+          this.DeliveredInfos[0].DeliveredID = res.data[5];
         })
         .catch((error) => {
           console.log(error);
