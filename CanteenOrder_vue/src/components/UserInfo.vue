@@ -24,6 +24,7 @@
         <template slot="title">
           <i class="el-icon-s-home" size="50px"></i>
           <span style="margin-left: 20px">我的收货信息</span>
+          <el-button icon="el-icon-plus" circle size="mini" @click="dialogVisible = true; dialogID = 3"></el-button>
         </template>
         <div v-for="(DeliveredInfo, index) in this.DeliveredInfos">
           <el-descriptions :title="DeliveredInfo.Consignee + ' ' + DeliveredInfo.Telephone" :colon="false">
@@ -46,7 +47,8 @@
           <span v-if="dialogID == 2">修改密码</span>
           <span v-else-if="dialogID == 1">修改手机号</span>
           <span v-else-if="dialogID == 0">修改用户名</span>
-          <span v-else-if="dialogID == 3">修改收货信息</span>
+          <span v-else-if="dialogID == 3 && edit_index != null">修改收货信息</span>
+          <span v-else-if="dialogID == 3 && edit_index == null">新增收货信息</span>
         </template>
         <el-row type="flex" justify="center" align="middle" v-if="dialogID == 0">
           <el-col :span="6" style="text-align:center">用户名</el-col>
@@ -72,15 +74,17 @@
         <div v-else-if="dialogID == 3">
           <el-row type="flex" justify="center" align="middle" style="margin: 10px">
             <el-col :span="6" style="text-align:center">收货姓名</el-col>
-            <el-col :span="18"><el-input  :placeholder="this.DeliveredInfos[this.edit_index].Consignee" v-model="edit_Consignee"></el-input></el-col>
+            <el-col :span="18">
+              <el-input  :placeholder="this.edit_index != null ? this.DeliveredInfos[this.edit_index].Consignee : '请输入收货人姓名'" v-model="edit_Consignee"></el-input>
+            </el-col>
           </el-row>
           <el-row type="flex" justify="center" align="middle" style="margin: 10px">
             <el-col :span="6" style="text-align:center">手机号码</el-col>
-            <el-col :span="18"><el-input  :placeholder="this.DeliveredInfos[this.edit_index].Telephone" v-model="edit_Telephone"></el-input></el-col>
+            <el-col :span="18"><el-input  :placeholder="this.edit_index != null ? this.DeliveredInfos[this.edit_index].Telephone: '请输入收货手机号'" v-model="edit_Telephone"></el-input></el-col>
           </el-row>
           <el-row type="flex" justify="center" align="middle" style="margin: 10px">
             <el-col :span="6" style="text-align:center">收货地址</el-col>
-            <el-col :span="18"><el-input  :placeholder="this.DeliveredInfos[this.edit_index].Address" v-model="edit_Address"></el-input></el-col>
+            <el-col :span="18"><el-input  :placeholder="this.edit_index != null ? this.DeliveredInfos[this.edit_index].Address: '请输入收货地址'" v-model="edit_Address"></el-input></el-col>
           </el-row>
         </div>
         <span slot="footer" class="dialog-footer">
@@ -110,12 +114,11 @@ export default {
       input_PW: '',
       edit_PassWord: '',
       checkPW: true,
-      edit_index: undefined,
+      edit_index: null,
       edit_Consignee: '',
       edit_Telephone: '',
       edit_Address: '',
-      DeliveredInfos:[{DeliveredID: null, Consignee:'周楠', Telephone:'13823367491', Address:'荔园八栋2504A', isdefault:true},
-        {DeliveredID: null, Consignee:'王子烨', Telephone:'13713989126', Address:'荔园四栋205', isdefault:false}]
+      DeliveredInfos:[]
     }
   },
   mounted() {
@@ -148,18 +151,61 @@ export default {
         this.input_PW = '';
       }
       else if(this.dialogID === 3){
-        if(this.edit_Consignee) this.DeliveredInfos[this.edit_index].Consignee = this.edit_Consignee;
-        if(this.edit_Telephone) this.DeliveredInfos[this.edit_index].Telephone = this.edit_Telephone;
-        if(this.edit_Address) this.DeliveredInfos[this.edit_index].Address = this.edit_Address;
+        if (this.edit_index != null) {
+          update = {deliveredID: this.DeliveredInfos[this.edit_index].DeliveredID};
+          let key = '';
+          let value = '';
+          if (this.edit_Consignee) {
+            key = 'consignee';
+            value = this.edit_Consignee;
+            update[key] = value;
+            this.DeliveredInfos[this.edit_index].Consignee = this.edit_Consignee;
+
+          }
+          if (this.edit_Telephone) {
+            key = 'telephone';
+            value = this.edit_Telephone;
+            update[key] = value;
+            this.DeliveredInfos[this.edit_index].Telephone = this.edit_Telephone;
+          }
+          if (this.edit_Address) {
+            key = 'address';
+            value = this.edit_Address;
+            update[key] = value;
+            this.DeliveredInfos[this.edit_index].Address = this.edit_Address;
+          }
+        }
+        else update = {consignee: this.edit_Consignee, telephone: this.edit_Telephone, address: this.edit_Address};
         this.dialogVisible = false;
       }
 
-      const url = "http://127.0.0.1:5000/api/updateUserInfo"
-      this.axios.post(url, update)
-        .then((res) => {console.log(res);})
-        .catch((error) => {
-        console.log(error);
-      })
+      if(this.edit_index != null) {
+        if(this.dialogID != 3){
+          const url = "http://127.0.0.1:5000/api/updateUserInfo"
+          this.axios.put(url, update)
+            .then((res) => {console.log(res);})
+            .catch((error) => {
+              console.log(error);
+            })
+        }
+        else{
+          const url = "http://127.0.0.1:5000/api/updateDeliveredInfo"
+          this.axios.put(url, update)
+            .then((res) => {console.log(res);})
+            .catch((error) => {
+              console.log(error);
+            })
+        }
+      }
+      else{
+        const url = "http://127.0.0.1:5000/api/insertDeliveredInfo"
+        this.axios.post(url, update)
+          .then((res) => {console.log(res);})
+          .catch((error) => {
+            console.log(error);
+          })
+      }
+      this.edit_index = null;
     },
     changeDefault(index){
       for (let i = 0;i < this.DeliveredInfos.length; i++){
@@ -168,16 +214,27 @@ export default {
     },
     getData(){
       // 使用 axios 向 flask 发送请求
-      const url = "http://127.0.0.1:5000/api/getuserInfo";
-      this.axios.get(url)
+      const url_ui = "http://127.0.0.1:5000/api/getuserInfo";
+      this.axios.get(url_ui)
         .then((res) => {
           console.log(res.data);
           this.UserID = res.data[0];
           this.UserName = res.data[1];
           this.TelNumber = res.data[2];
           this.PassWord = res.data[3];
-          this.DeliveredInfos[0].DeliveredID = res.data[4];
-          this.DeliveredInfos[0].DeliveredID = res.data[5];
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+
+      const url_di = "http://127.0.0.1:5000/api/getDeliveredInfo"
+      this.axios.get(url_di)
+        .then((res) => {
+          console.log(res.data);
+          for (let i = 0; i < res.data.length; i++){
+            this.DeliveredInfos.push({DeliveredID: res.data[i][0], Consignee: res.data[i][2], Telephone: res.data[i][3], Address: res.data[i][4], isdefault: (i > 0 ? false : true)})
+          }
+
         })
         .catch((error) => {
           console.log(error);
