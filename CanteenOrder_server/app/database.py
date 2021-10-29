@@ -1,12 +1,14 @@
 import pymysql
-
+import time
 
 class MyDB():
     def __init__(self, user, password, db_name):
         self.DB_conn = pymysql.connect(host='127.0.0.1', port=3306, user=user, password=password, db=db_name)
         print(self.DB_conn)
 
+
     def update_DB(self, sql):
+        self.DB_conn.ping(reconnect=True)
         try:
             with self.DB_conn.cursor() as cursor:
                 cursor.execute(sql)
@@ -18,6 +20,7 @@ class MyDB():
             return False
 
     def get_data_DB(self, sql):
+        self.DB_conn.ping(reconnect=True)
         try:
             with self.DB_conn.cursor() as cursor:
                 cursor.execute(sql)
@@ -40,3 +43,5 @@ if __name__ == '__main__':
     if userinfo:
         for data in userinfo:
             print(data)
+
+

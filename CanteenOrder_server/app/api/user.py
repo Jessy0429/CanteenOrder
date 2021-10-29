@@ -5,7 +5,7 @@ import json
 
 userID = 0
 
-@bp.route('/getuserInfo', methods=['GET'])
+@bp.route('/getUserInfo', methods=['GET'])
 def getUserInfo():
     """获取用户信息"""
     getUserInfo_sql = "select * from user where userID = {}".format(userID)
@@ -25,7 +25,7 @@ def updateUserInfo():
 
 @bp.route('/getDeliveredInfo', methods=['GET'])
 def getDeliveredInfo():
-    """获取收获信息"""
+    """获取收货信息"""
     getDeliveredInfo_sql = "select * from deliveredinfo where userID = {}".format(userID)
     userinfo = db.get_data_DB(getDeliveredInfo_sql)
     print(userinfo)
@@ -41,8 +41,9 @@ def insertDeliveredInfo():
                                                                                                 list(data.values())[1],
                                                                                                 list(data.values())[2])
     print(InsertDeliveredInfo_sql)
+    db.update_DB(InsertDeliveredInfo_sql)
     # updateUserInfo_sql = "update user set "
-    return jsonify(db.update_DB(InsertDeliveredInfo_sql))
+    return jsonify(cnt)
 
 @bp.route('/updateDeliveredInfo', methods=['PUT'])
 def updateDeliveredInfo():

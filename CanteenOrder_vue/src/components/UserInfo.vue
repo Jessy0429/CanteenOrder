@@ -200,7 +200,10 @@ export default {
       else{
         const url = "http://127.0.0.1:5000/api/insertDeliveredInfo"
         this.axios.post(url, update)
-          .then((res) => {console.log(res);})
+          .then((res) => {
+            console.log(res);
+            this.DeliveredInfos.push({deliveredID: res.data, Consignee: this.edit_Consignee, Telephone: this.edit_Telephone, Address: this.edit_Address, isdefault: false})
+          })
           .catch((error) => {
             console.log(error);
           })
@@ -214,7 +217,8 @@ export default {
     },
     getData(){
       // 使用 axios 向 flask 发送请求
-      const url_ui = "http://127.0.0.1:5000/api/getuserInfo";
+      const url_ui = "http://127.0.0.1:5000/api/getUserInfo";
+      // console.log(undefined.data)
       this.axios.get(url_ui)
         .then((res) => {
           console.log(res.data);
@@ -226,19 +230,21 @@ export default {
         .catch((error) => {
           console.log(error);
         })
-
-      const url_di = "http://127.0.0.1:5000/api/getDeliveredInfo"
-      this.axios.get(url_di)
-        .then((res) => {
-          console.log(res.data);
-          for (let i = 0; i < res.data.length; i++){
-            this.DeliveredInfos.push({DeliveredID: res.data[i][0], Consignee: res.data[i][2], Telephone: res.data[i][3], Address: res.data[i][4], isdefault: (i > 0 ? false : true)})
+        .then(
+          ()=>{
+            const url_di = "http://127.0.0.1:5000/api/getDeliveredInfo"
+            this.axios.get(url_di)
+              .then((res) => {
+                console.log(res.data);
+                for (let i = 0; i < res.data.length; i++){
+                  this.DeliveredInfos.push({DeliveredID: res.data[i][0], Consignee: res.data[i][2], Telephone: res.data[i][3], Address: res.data[i][4], isdefault: (i > 0 ? false : true)})
+                }
+              })
+              .catch((error) => {
+                console.log(error);
+              })
           }
-
-        })
-        .catch((error) => {
-          console.log(error);
-        })
+      )
     }
   }
 }
