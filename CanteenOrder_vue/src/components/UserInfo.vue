@@ -98,6 +98,7 @@
 </template>
 
 <script>
+import bus from '../bus.js';
 export default {
   name: "UserInfo",
   data(){
@@ -123,6 +124,7 @@ export default {
   },
   mounted() {
     this.getData();
+    this.passData();
   },
   methods: {
     updateInfo(){
@@ -245,6 +247,9 @@ export default {
               })
           }
       )
+    },
+    passData(){
+      bus.$emit('getpass', this.DeliveredInfos);
     }
   }
 }

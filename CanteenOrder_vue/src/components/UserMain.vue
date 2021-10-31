@@ -3,12 +3,12 @@
     <el-main>
       <div>
         <div>
-      <span style="font-size: larger; font-family: 'Microsoft JhengHei'">
-        <p v-if="this.Time.getHours() > 16">晚上好，</p>
-        <p v-else-if="this.Time.getHours() > 10">中午好，</p>
-        <p v-else-if="this.Time.getHours() > 5">早上好，</p>
-        <p>今天想吃点啥？</p>
-      </span>
+          <span style="font-size: larger; font-family: 'Microsoft JhengHei'">
+            <p v-if="this.Time.getHours() > 16">晚上好，</p>
+            <p v-else-if="this.Time.getHours() > 10">中午好，</p>
+            <p v-else-if="this.Time.getHours() > 5">早上好，</p>
+            <p>今天想吃点啥？</p>
+          </span>
         </div>
         <div id="SelectInput">
           <el-select v-model="sel_Canteen" placeholder="选择食堂" clearable @clear="sel_Canteen = null; sel_Store = null">
@@ -23,7 +23,7 @@
           <el-input placeholder="想吃什么菜？" prefix-icon="el-icon-search" v-model="input_dish" style="width: 223.67px">
           </el-input>
         </div>
-        <div id="StoreTable" v-if="this.sel_Store == null">
+        <div id="StoreTable" v-show="this.sel_Store == null">
           <el-table :data="sel_Ct_StView" highlight-current-row @current-change="handleCurrentChange">
             <el-table-column
               prop="storename"
@@ -42,13 +42,13 @@
             </el-table-column>
           </el-table>
         </div>
-        <div id="DishTable" v-else>
+        <div id="DishTable" v-show="this.sel_Store != null">
           <el-table :data="Dish" highlight-current-row>
             <el-table-column type="expand">
               <template slot-scope="props">
                 <el-form label-position="left" inline class="demo-table-expand">
                   <el-form-item label="菜系">
-                    <span>{{ props.row.typeID }}</span>
+                    <span>{{ props.row.typeID}}</span>
                   </el-form-item>
                   <el-form-item label="原料">
                     <span>{{ props.row.ingredients }}</span>
@@ -63,6 +63,7 @@
               prop="picture"
               label="图片"
               width="200">
+              <span>假装有图片</span>
             </el-table-column>
             <el-table-column
               prop="dishname"
@@ -89,14 +90,75 @@
             </el-table-column>
             <el-table-column fixed="right" width="100">
               <template slot-scope="scope">
-                <el-button icon="el-icon-minus" @click="minDishnum(scope.row)" circle size="mini"></el-button>
+                <el-button icon="el-icon-minus" @click="minDishnum(scope.row)" circle size="mini" v-if="scope.row.dishnum > 0"></el-button>
+                <el-button icon="el-icon-minus" circle size="mini" disabled v-else></el-button>
                 <span>{{scope.row.dishnum}}</span>
-                <el-button icon="el-icon-plus" @click="addDishnum(scope.row)" circle size="mini"></el-button>
+                <el-button icon="el-icon-plus" @click="addDishnum(scope.row)" circle size="mini" v-if="scope.row.dishnum < scope.row.inventory"></el-button>
+                <el-button icon="el-icon-plus" circle size="mini" disabled v-else></el-button>
               </template>
             </el-table-column>
           </el-table>
         </div>
       </div>
+      <el-dialog id="OrderDialog" :visible.sync="dialogVisible" :append-to-body="true">
+        <template slot="title">
+          <span style="font-family: 'Microsoft JhengHei'">想好了？ 快下单，多吃点</span>
+        </template>
+        <el-collapse>
+          <el-collapse-item>
+            <template slot="title" id="collapse-head">
+              <div style="width: 450px">
+                <el-row id="default-deliver-head">
+                  <span v-text="this.DeliveredInfos[this.sel_Delivered].Consignee + ' ' + this.DeliveredInfos[this.sel_Delivered].Telephone"></span>
+                </el-row>
+                <el-row id="default-deliver-context">{{this.DeliveredInfos[this.sel_Delivered].Address}}</el-row>
+              </div>
+            </template>
+            <div v-for="(DeliveredInfo, index) in this.DeliveredInfos">
+              <el-descriptions :title="DeliveredInfo.Consignee + ' ' + DeliveredInfo.Telephone" :colon="false" >
+                <el-descriptions-item content-style="width: 100%">
+                  <el-row>
+                    <span>{{DeliveredInfo.Address}}</span>
+                  </el-row>
+                </el-descriptions-item>
+                <template slot="extra"><el-radio v-model="sel_Delivered" :label="index">{{''}}</el-radio></template>
+              </el-descriptions>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+        <div style="display: flex; justify-content: center; margin: 10px">
+          <el-time-select  v-model="d_time"
+                           :picker-options="{start: '12:00',step: '00:15',end: '18:30'}"
+                           placeholder="选择时间" style="margin-right: 10px">
+<!--                          :picker-options="{start: this.Time.format('hh:mm'),step: '00:10',end: '19:30'}"-->
+
+          </el-time-select>
+          <el-select v-model="dishware" placeholder="选择餐具数量" style="margin-left: 10px">
+            <el-option
+              v-for="item in [{label: '无需餐具', value: 0}, {label: '1份', value: 1}, {label: '2份', value: 2},
+              {label: '3份', value: 3}, {label: '4份', value: 4}, {label: '5份', value: 5}]"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </div>
+
+        <div style="margin: 20px">
+          <el-row type="flex" justify="center" align="middle" v-for="(dish, index) in this.ShoppingCart" :key="index">
+            <el-col :span="8" style="text-align:center; font-family: 'Microsoft Tai Le'">{{dish.dishname}}</el-col>
+            <el-col :span="8" style="text-align:center; font-family: 'Microsoft Tai Le'">{{dish.price}} x {{dish.dishnum}}</el-col>
+            <el-col :span="8" style="text-align:center; font-family: 'Microsoft Tai Le'"><el-button type="text">{{dish.store}}</el-button></el-col>
+          </el-row>
+          <el-row type="flex" justify="center" align="middle">
+            <el-col :span="18" style="text-align: right; font-family: 'Microsoft Tai Le'">共{{this.tolAmount}}元</el-col>
+          </el-row>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="takeOrder">确 定</el-button>
+          <el-button @click="dialogVisible = false">取 消</el-button>
+        </span>
+      </el-dialog>
     </el-main>
     <el-footer>
       <el-dropdown trigger="click">
@@ -109,18 +171,40 @@
           <el-dropdown-item v-for="(dish, index) in this.ShoppingCart" :key="index">
             {{dish.dishname}} x {{dish.dishnum}}
           </el-dropdown-item>
+          <el-dropdown-item>总计{{this.tolAmount}}元</el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
-      <el-button type="text" style="font-size: 30px; color: white">
+      <el-button type="text" style="font-size: 30px; color: white" @click="dialogVisible = true">
         <span>下单</span>
         <i class="el-icon-arrow-right"></i>
       </el-button>
     </el-footer>
   </el-container>
 
+
 </template>
 
 <script>
+Date.prototype.format = function(fmt) {
+  var o = {
+    "M+" : this.getMonth()+1,                 //月份
+    "d+" : this.getDate(),                    //日
+    "h+" : this.getHours(),                   //小时
+    "m+" : this.getMinutes(),                 //分
+    "s+" : this.getSeconds(),                 //秒
+    "q+" : Math.floor((this.getMonth()+3)/3), //季度
+    "S"  : this.getMilliseconds()             //毫秒
+  };
+  if(/(y+)/.test(fmt)) {
+    fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+  }
+  for(var k in o) {
+    if(new RegExp("("+ k +")").test(fmt)){
+      fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+    }
+  }
+  return fmt;
+};
 export default {
   name: "UserMain",
   data(){
@@ -141,8 +225,15 @@ export default {
       sel_Store: null,
       input_dish:'',
       Dish:[],
+      OrderID: null,
       tolDishnum: 0,
-      ShoppingCart:[]
+      tolAmount: 0,
+      ShoppingCart:[],
+      dialogVisible: false,
+      DeliveredInfos:[],
+      sel_Delivered: 0,
+      d_time: null,
+      dishware: null,
     }
   },
   computed:{
@@ -224,6 +315,21 @@ export default {
                     .catch((error) => {
                       console.log(error);
                     })
+                  .then(
+                    () => {
+                      const url_di = "http://127.0.0.1:5000/api/getDeliveredInfo"
+                      this.axios.get(url_di)
+                        .then((res) => {
+                          console.log(res.data);
+                          for (let i = 0; i < res.data.length; i++){
+                            this.DeliveredInfos.push({DeliveredID: res.data[i][0], Consignee: res.data[i][2], Telephone: res.data[i][3], Address: res.data[i][4]})
+                          }
+                        })
+                        .catch((error) => {
+                          console.log(error);
+                        })
+                    }
+                  )
                 }
               )
           }
@@ -237,7 +343,7 @@ export default {
       }
       console.log(this.sel_Store)
     },
-     getDish(){
+    getDish(){
       this.Dish = []
       // console.log(this.sel_Store);
       const url = "http://127.0.0.1:5000/api/getDishInfo/" + String(this.sel_Store)
@@ -264,22 +370,60 @@ export default {
     addDishnum(row){
       row.dishnum++;
       this.tolDishnum++;
+      this.tolAmount += row.price;
       var index = this.ShoppingCart.findIndex((dish) => dish.dishID === row.dishID);
       console.log(index);
       if(index >= 0) this.ShoppingCart[index].dishnum++;
-      else this.ShoppingCart.push({dishID: row.dishID, dishname: row.dishname, dishnum: row.dishnum});
+      else this.ShoppingCart.push({dishID: row.dishID, dishname: row.dishname, dishnum: row.dishnum, store: row.store, price: row.price});
       console.log(this.ShoppingCart);
     },
     minDishnum(row){
       row.dishnum--;
       this.tolDishnum--;
+      this.tolAmount-= row.price;
       var index = this.ShoppingCart.findIndex((dish) => dish.dishID === row.dishID);
       console.log(index);
       if (!row.dishnum) this.ShoppingCart.splice(index, 1);
       console.log(this.ShoppingCart);
+    },
+    takeOrder(){
+      let order = {deliveredID: this.DeliveredInfos[this.sel_Delivered].DeliveredID, dishware: this.dishware,
+        canteenID: this.sel_Canteen, o_time: this.Time.format("yyyy-MM-dd hh:mm"), d_time: this.Time.format("yyyy-MM-dd ") + this.d_time, status: 0};
+      const url = "http://127.0.0.1:5000/api/insertOrderInfo";
+      // console.log(order);
+      this.axios.post(url, order)
+        .then((res) => {
+          console.log(res);
+          this.OrderID = res.data;
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .then(() => {
+          const url = "http://127.0.0.1:5000/api/insertOrderDish";
+          var update = {orderID: this.OrderID, ShoppingCart: this.ShoppingCart};
+          this.axios.post(url, update)
+            .then((res) => {
+              console.log(res);
+            })
+            .catch((error) => {
+              console.log(error);
+            })
+          .then(() => {
+            this.ShoppingCart = []
+            this.OrderID = null;
+            this.dialogVisible = false;
+            this.tolAmount = 0;
+            this.tolDishnum = 0;
+            this.sel_Store = null;
+            this.sel_Canteen = null;
+            this.dishware = null;
+            this.d_time = null;
+          })
+        })
     }
   }
-}
+};
 </script>
 
 <style scoped>
@@ -291,6 +435,9 @@ export default {
    width: 800px;
    display: inline-block;
  }
+.demo-table-expand {
+  font-size: 0;
+}
 .demo-table-expand label {
   width: 90px;
   color: #99a9bf;
@@ -305,5 +452,36 @@ export default {
   color: #ffffff;
   text-align: right;
   line-height: 30px;
+}
+
+#OrderDialog{
+  width: 100%;
+}
+
+#OrderDialog /deep/ .el-collapse-item__header{
+  height: 100px;
+}
+
+#OrderDialog /deep/ #default-deliver-head{
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 40px;
+  margin: 0;
+}
+#OrderDialog /deep/ #default-deliver-context{
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 40px;
+}
+#OrderDialog /deep/ .el-descriptions__header{
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 40px;
+  margin: 0;
+}
+#OrderDialog /deep/ .el-descriptions-item__content{
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 40px;
 }
 </style>
