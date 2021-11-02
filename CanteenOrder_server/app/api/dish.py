@@ -33,10 +33,12 @@ def getCt_StInfo():
     print(data)
     return jsonify(data)
 
-@bp.route('/getDishInfo/<int:storeID>', methods=['GET'])
-def getDishInfo(storeID):
-    """获取食堂商家视图信息"""
-    getDishInfo_sql = "select * from dish where storeID = {}".format(storeID)
+@bp.route('/getDishInfo', methods=['GET'])
+def getDishInfo():
+    """获取菜品信息"""
+    data = request.args.get('storeID')
+    storeID = int(data)
+    getDishInfo_sql = "select * , typename from dish join dishtype on dish.typeID = dishtype.typeID where storeID = {}".format(storeID)
     dishinfo = db.get_data_DB(getDishInfo_sql)
     print(dishinfo)
     return jsonify(dishinfo)

@@ -48,7 +48,7 @@
               <template slot-scope="props">
                 <el-form label-position="left" inline class="demo-table-expand">
                   <el-form-item label="菜系">
-                    <span>{{ props.row.typeID}}</span>
+                    <span>{{ props.row.type}}</span>
                   </el-form-item>
                   <el-form-item label="原料">
                     <span>{{ props.row.ingredients }}</span>
@@ -66,9 +66,12 @@
               <span>假装有图片</span>
             </el-table-column>
             <el-table-column
-              prop="dishname"
               label="菜品名称"
-              width="100">
+              width="150">
+              <template slot-scope="props">
+                <span>{{props.row.dishname}}</span>
+                <i class="el-icon-star-on" v-if="props.row.recommend"></i>
+              </template>
             </el-table-column>
             <el-table-column
               prop="price"
@@ -100,7 +103,7 @@
           </el-table>
         </div>
       </div>
-      <el-dialog id="OrderDialog" :visible.sync="dialogVisible" :append-to-body="true">
+      <el-dialog id="OrderDialog" :visible.sync="dialogVisible" :append-to-body="true" v-if="DeliveredInfos.length > 0">
         <template slot="title">
           <span style="font-family: 'Microsoft JhengHei'">想好了？ 快下单，多吃点</span>
         </template>
@@ -209,6 +212,7 @@ export default {
   name: "UserMain",
   data(){
     return{
+      userID: this.$route.query.userID,
       Time: new Date(),
       Canteens: [],
       Stores: [
@@ -298,7 +302,7 @@ export default {
                 for (let i = 0; i < res.data.length; i++){
                   this.Stores.push({storeID: res.data[i][0], storename: res.data[i][1], canteenID: res.data[i][2], description: res.data[i][3]})
                 }
-                console.log(this.Stores)
+                console.log('store', this.Stores)
               })
               .catch((error) => {
                 console.log(error);
@@ -310,7 +314,7 @@ export default {
                     .then((res) => {
                       console.log(res.data);
                       for (let i = 0; i < res.data.length; i++) this.Ct_St.push({canteenID: res.data[i][0], storesID: res.data[i][1]});
-                      console.log(this.Ct_St);
+                      console.log('Ct_St', this.Ct_St);
                     })
                     .catch((error) => {
                       console.log(error);
@@ -318,12 +322,13 @@ export default {
                   .then(
                     () => {
                       const url_di = "http://127.0.0.1:5000/api/getDeliveredInfo"
-                      this.axios.get(url_di)
+                      this.axios.get(url_di, {params:{userID: this.userID}})
                         .then((res) => {
                           console.log(res.data);
                           for (let i = 0; i < res.data.length; i++){
                             this.DeliveredInfos.push({DeliveredID: res.data[i][0], Consignee: res.data[i][2], Telephone: res.data[i][3], Address: res.data[i][4]})
                           }
+                          console.log('deliver', this.DeliveredInfos)
                         })
                         .catch((error) => {
                           console.log(error);
@@ -346,9 +351,9 @@ export default {
     getDish(){
       this.Dish = []
       // console.log(this.sel_Store);
-      const url = "http://127.0.0.1:5000/api/getDishInfo/" + String(this.sel_Store)
+      const url = "http://127.0.0.1:5000/api/getDishInfo"
       // console.log(url)
-      this.axios.get(url)
+      this.axios.get(url, {params:{storeID: this.sel_Store}})
         .then((res) => {
           console.log(res.data);
           for (let i = 0; i < res.data.length; i++) {
@@ -358,8 +363,7 @@ export default {
             if (index >= 0) num = this.ShoppingCart[index].dishnum;
             this.Dish.push({dishID: data[0], dishname: data[1], price: data[2], description: data[3],
               ingredients: data[4], store: this.Stores[this.sel_Store].storename, canteen: this.Canteens[this.sel_Canteen].canteenname,
-              inventory: data[6], recommend: data[7], typeID: data[8], picture: data[9], dishnum: num})
-
+              inventory: data[6], recommend: data[7], type: data[13], picture: data[9], dishnum: num})
           }
           console.log(this.Dish);
         })
@@ -387,10 +391,10 @@ export default {
       console.log(this.ShoppingCart);
     },
     takeOrder(){
-      let order = {deliveredID: this.DeliveredInfos[this.sel_Delivered].DeliveredID, dishware: this.dishware,
+      let order = {userID: this.userID, deliveredID: this.DeliveredInfos[this.sel_Delivered].DeliveredID, dishware: this.dishware,
         canteenID: this.sel_Canteen, o_time: this.Time.format("yyyy-MM-dd hh:mm"), d_time: this.Time.format("yyyy-MM-dd ") + this.d_time, status: 0};
       const url = "http://127.0.0.1:5000/api/insertOrderInfo";
-      // console.log(order);
+      console.log(order);
       this.axios.post(url, order)
         .then((res) => {
           console.log(res);
@@ -432,7 +436,7 @@ export default {
   display: inline-block;
 }
 #DishTable{
-   width: 800px;
+   width: 850px;
    display: inline-block;
  }
 .demo-table-expand {

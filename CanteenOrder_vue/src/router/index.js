@@ -4,6 +4,7 @@ import AppUser from "../components/AppUser";
 import UserMain from "../components/UserMain";
 import UserOrders from "../components/UserOrders";
 import UserInfo from "../components/UserInfo";
+import Login from "../components/Login";
 
 
 Vue.use(Router)
@@ -11,7 +12,7 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
-      path: '/',
+      path: '/User',
       name: 'AppUser',
       component: AppUser,
       redirect:'/usermain',
@@ -20,6 +21,11 @@ export default new Router({
         {path: '/userorders', name: 'userorders', component: UserOrders},
         {path: '/userinfo', name: 'userinfo', component: UserInfo}
       ]
+    },
+    {
+      path: '/',
+      name: 'Login',
+      component: Login,
     }
   ]
 })

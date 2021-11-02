@@ -1,7 +1,7 @@
 <template>
   <el-container direction="vertical" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:hidden;">
     <el-header height="100px">
-      <span>周邹揪，喜欢您来:D</span>
+      <span>{{this.username}}，喜欢您来:D</span>
       <i class="el-icon-food"></i>
     </el-header>
     <el-container height="100%" direction="horizontal">
@@ -24,7 +24,7 @@
         </el-menu>
       </el-aside>
       <el-main>
-        <router-view></router-view>
+        <router-view @childEvent="changeName"></router-view>
       </el-main>
     </el-container>
   </el-container>
@@ -37,6 +37,8 @@ export default {
     return {
       clickType: NaN,
       clickPath: undefined,
+      userID: this.$route.query.userID,
+      username: this.$route.query.username,
     }
   },
   methods:{
@@ -46,15 +48,15 @@ export default {
       // this.$store.commit('updateClickType', keyPath);
       if(keyPath[0] == '0') {
         this.clickType = 'showMainPage';
-        this.$router.push({name:'usermain'});
+        this.$router.push({path:'/usermain', query:{userID: this.userID}});
       }
       else if(keyPath[0] == '1') {
         this.clickType = 'showOrdersPage';
-        this.$router.push({name:'userorders'});
+        this.$router.push({path:'/userorders', query:{userID: this.userID}});
       }
       else if(keyPath[0] == '2') {
         this.clickType = 'showUserPage';
-        this.$router.push({name:'userinfo'});
+        this.$router.push({path:'/userinfo', query:{userID: this.userID}});
       }
       // if(keyPath[0] === "5" || keyPath[0] === "8") {
       //   this.$store.commit('showMainGraph', true);
@@ -62,8 +64,11 @@ export default {
       // else {
       //   this.$store.commit('showMainGraph', false);
       console.log(this.clickType, this.clickPath)
-      }
-
+      },
+    changeName(name){
+      console.log(name);
+      if (name.username != this.username) this.username = name.username;
+    }
   }
 }
 </script>

@@ -107,7 +107,7 @@ export default {
       dialogID: undefined,
       activeNames: ['1'],
       UserName: '',
-      UserID: null,
+      UserID: this.$route.query.userID,
       TelNumber: '',
       PassWord: '',
       edit_UserName: '',
@@ -128,18 +128,23 @@ export default {
   },
   methods: {
     updateInfo(){
-      let update = {}
+      let update = {userID: this.UserID}
       if (this.dialogID === 0){
         this.UserName = this.edit_UserName;
         this.edit_UserName = '';
         this.dialogVisible = false;
-        update = {username: this.UserName}
+        var key = 'username';
+        var value = this.UserName;
+        update[key] = value;
+        this.$emit('childEvent', { username: this.UserName});
       }
       else if(this.dialogID === 1){
         this.TelNumber = this.edit_TelNumber;
         this.edit_TelNumber = '';
         this.dialogVisible = false;
-        update = {telnumber: this.TelNumber}
+        var key = 'telnumber';
+        var value = this.TelNumber;
+        update[key] = value;
       }
       else if(this.dialogID === 2){
         this.checkPW = (this.input_PW === this.PassWord);
@@ -147,7 +152,9 @@ export default {
           this.PassWord = this.edit_PassWord;
           this.edit_PassWord = '';
           this.dialogVisible = false;
-          update = {password: this.PassWord}
+          var key = 'password';
+          var value = this.PassWord;
+          update[key] = value;
         }
         this.edit_PassWord = '';
         this.input_PW = '';
@@ -177,11 +184,11 @@ export default {
             this.DeliveredInfos[this.edit_index].Address = this.edit_Address;
           }
         }
-        else update = {consignee: this.edit_Consignee, telephone: this.edit_Telephone, address: this.edit_Address};
+        else update = Object.assign(update, {consignee: this.edit_Consignee, telephone: this.edit_Telephone, address: this.edit_Address});
         this.dialogVisible = false;
       }
 
-      if(this.edit_index != null) {
+      if(this.edit_index == null) {
         if(this.dialogID != 3){
           const url = "http://127.0.0.1:5000/api/updateUserInfo"
           this.axios.put(url, update)
@@ -191,21 +198,21 @@ export default {
             })
         }
         else{
-          const url = "http://127.0.0.1:5000/api/updateDeliveredInfo"
-          this.axios.put(url, update)
-            .then((res) => {console.log(res);})
+          const url = "http://127.0.0.1:5000/api/insertDeliveredInfo"
+          this.axios.post(url, update)
+            .then((res) => {
+              console.log(res);
+              this.DeliveredInfos.push({deliveredID: res.data, Consignee: this.edit_Consignee, Telephone: this.edit_Telephone, Address: this.edit_Address, isdefault: false})
+            })
             .catch((error) => {
               console.log(error);
             })
         }
       }
       else{
-        const url = "http://127.0.0.1:5000/api/insertDeliveredInfo"
-        this.axios.post(url, update)
-          .then((res) => {
-            console.log(res);
-            this.DeliveredInfos.push({deliveredID: res.data, Consignee: this.edit_Consignee, Telephone: this.edit_Telephone, Address: this.edit_Address, isdefault: false})
-          })
+        const url = "http://127.0.0.1:5000/api/updateDeliveredInfo"
+        this.axios.put(url, update)
+          .then((res) => {console.log(res);})
           .catch((error) => {
             console.log(error);
           })
@@ -221,13 +228,13 @@ export default {
       // 使用 axios 向 flask 发送请求
       const url_ui = "http://127.0.0.1:5000/api/getUserInfo";
       // console.log(undefined.data)
-      this.axios.get(url_ui)
+      this.axios.get(url_ui, {params: {userID: this.UserID}})
         .then((res) => {
           console.log(res.data);
-          this.UserID = res.data[0];
           this.UserName = res.data[1];
           this.TelNumber = res.data[2];
           this.PassWord = res.data[3];
+          this.$emit('childEvent', { username: this.UserName});
         })
         .catch((error) => {
           console.log(error);
@@ -235,7 +242,7 @@ export default {
         .then(
           ()=>{
             const url_di = "http://127.0.0.1:5000/api/getDeliveredInfo"
-            this.axios.get(url_di)
+            this.axios.get(url_di, {params: {userID: this.UserID}})
               .then((res) => {
                 console.log(res.data);
                 for (let i = 0; i < res.data.length; i++){
