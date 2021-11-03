@@ -136,7 +136,7 @@ export default {
       this.$refs[formName].validate((valid) => {
         if(valid) {
           const url = "http://127.0.0.1:5000/api/signup";
-          var name = '用户' + this.signUp.user.substr(8,4);
+          var name = '用户' + this.signUp.user.substr(7,4);
           var user = {telnumber: this.signUp.user, password: this.signUp.password, username: name}
           this.axios.post(url, user)
             .then((res) => {
@@ -145,7 +145,7 @@ export default {
                 this.$message.success('注册成功！');
                 this.$refs[formName].resetFields();
                 //  跳转到登录页
-                this.$router.push({path: '/User', query: {userID: res.data[0], username: name}});
+                this.$router.push({path: '/User', query: {userID: res.data, username: name}});
               }
             })
             .catch((error) => {

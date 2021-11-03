@@ -1,7 +1,9 @@
 <template>
   <el-container>
-    <el-main>
-      <div>
+    <el-main style="padding: 0">
+<!--      <el-scrollbar style="height: 600px">-->
+<!--      </el-scrollbar>-->
+      <div style="height: 600px;">
         <div>
           <span style="font-size: larger; font-family: 'Microsoft JhengHei'">
             <p v-if="this.Time.getHours() > 16">晚上好，</p>
@@ -60,10 +62,11 @@
               </template>
             </el-table-column>
             <el-table-column
-              prop="picture"
               label="图片"
               width="200">
-              <span>假装有图片</span>
+              <template slot-scope="props">
+                <img :src="props.row.picture" class="image"/>
+              </template>
             </el-table-column>
             <el-table-column
               label="菜品名称"
@@ -163,10 +166,10 @@
         </span>
       </el-dialog>
     </el-main>
-    <el-footer>
+    <el-footer height="85px">
       <el-dropdown trigger="click">
         <el-button type="text">
-          <el-badge :value="tolDishnum" class="item" type="primary">
+          <el-badge :value="tolDishnum" class="item">
             <i class="el-icon-shopping-cart-2" style="color: white; font-size: 50px"></i>
           </el-badge>
         </el-button>
@@ -361,9 +364,10 @@ export default {
             var num = 0;
             var index = this.ShoppingCart.findIndex((dish) => dish.dishID === data[0])
             if (index >= 0) num = this.ShoppingCart[index].dishnum;
+            var pic = data[9] == null ? '' : require("../assets/" + data[9]);
             this.Dish.push({dishID: data[0], dishname: data[1], price: data[2], description: data[3],
               ingredients: data[4], store: this.Stores[this.sel_Store].storename, canteen: this.Canteens[this.sel_Canteen].canteenname,
-              inventory: data[6], recommend: data[7], type: data[13], picture: data[9], dishnum: num})
+              inventory: data[6], recommend: data[7], type: data[13], picture: pic, dishnum: num})
           }
           console.log(this.Dish);
         })
@@ -382,10 +386,12 @@ export default {
       console.log(this.ShoppingCart);
     },
     minDishnum(row){
+      console.log('减菜')
       row.dishnum--;
       this.tolDishnum--;
-      this.tolAmount-= row.price;
+      this.tolAmount -= row.price;
       var index = this.ShoppingCart.findIndex((dish) => dish.dishID === row.dishID);
+      this.ShoppingCart[index].dishnum--;
       console.log(index);
       if (!row.dishnum) this.ShoppingCart.splice(index, 1);
       console.log(this.ShoppingCart);
@@ -452,12 +458,14 @@ export default {
   width: 50%;
 }
 .el-footer{
-  background-color: #66CCCC;
+  background-color: rgba(239, 120, 80, 0.99);
   color: #ffffff;
   text-align: right;
-  line-height: 30px;
+  /*line-height: 30px;*/
 }
-
+#SelectInput{
+  padding: 20px;
+}
 #OrderDialog{
   width: 100%;
 }
@@ -487,5 +495,13 @@ export default {
   font-size: 14px;
   font-weight: 400;
   line-height: 40px;
+}
+.image{
+  opacity: 100%;
+  width: 200px;
+  height: 150px;
+}
+.el-scrollbar__wrap {
+  overflow-x: hidden;
 }
 </style>

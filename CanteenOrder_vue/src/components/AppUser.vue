@@ -1,33 +1,40 @@
 <template>
-  <el-container direction="vertical" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:hidden;">
-    <el-header height="100px">
-      <span>{{this.username}}，喜欢您来:D</span>
-      <i class="el-icon-food"></i>
-    </el-header>
-    <el-container height="100%" direction="horizontal">
-      <el-aside>
-        <el-menu class="el-menu-vertical-demo"
-                 @select="handleSelect"
-                  default-active="0">
-          <el-menu-item class="el-submenu" index="0">
-            <i class="el-icon-tableware"></i>
-            <span>首页</span>
-          </el-menu-item>
-          <el-menu-item class="el-submenu" index="1">
-            <i class="el-icon-s-claim"></i>
-            <span>我的订单</span>
-          </el-menu-item>
-          <el-menu-item class="el-submenu" index="2">
-            <i class="el-icon-user"></i>
-            <span>个人中心</span>
-          </el-menu-item>
-        </el-menu>
-      </el-aside>
-      <el-main>
-        <router-view @childEvent="changeName"></router-view>
-      </el-main>
+  <div>
+    <div class="background">
+      <img src="../assets/background_app.jpg" class="image"/>
+    </div>
+    <el-container direction="vertical" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:hidden;">
+      <el-header height="100px">
+        <span>{{this.username}}，喜欢您来:D</span>
+        <i class="el-icon-food"></i>
+      </el-header>
+      <el-container height="100%" direction="horizontal">
+        <el-aside>
+          <el-menu class="el-menu-vertical-demo"
+                   @select="handleSelect"
+                   default-active="0">
+<!--                   background-color="rgba(0,0,0,0)"-->
+
+            <el-menu-item class="el-submenu" index="0">
+              <i class="el-icon-tableware" style="font-size: 30px"></i>
+              <span>首页</span>
+            </el-menu-item>
+            <el-menu-item class="el-submenu" index="1" height="250px">
+              <i class="el-icon-s-claim" style="font-size: 30px"></i>
+              <span>我的订单</span>
+            </el-menu-item>
+            <el-menu-item class="el-submenu" index="2" height="250px">
+              <i class="el-icon-user" style="font-size: 30px"></i>
+              <span>个人中心</span>
+            </el-menu-item>
+          </el-menu>
+        </el-aside>
+        <el-main>
+          <router-view @childEvent="changeName"></router-view>
+        </el-main>
+      </el-container>
     </el-container>
-  </el-container>
+  </div>
 </template>
 
 <script>
@@ -56,6 +63,7 @@ export default {
       }
       else if(keyPath[0] == '2') {
         this.clickType = 'showUserPage';
+        console.log(this.userID);
         this.$router.push({path:'/userinfo', query:{userID: this.userID}});
       }
       // if(keyPath[0] === "5" || keyPath[0] === "8") {
@@ -80,23 +88,48 @@ export default {
   height: 100%;
 }
 .el-header{
-  background-color: #66CCCC;
+  background-color: rgba(239, 120, 80, 0.99);
   color: #ffffff;
   text-align: center;
   line-height: 100px;
   font-family: 'Hiragino Sans GB';
   font-size: 30px;
-
 }
 .el-aside{
   text-align: center;
-  width: 200px;
+  width: 750px;
   font-family: 'Hiragino Sans GB';
   font-size: 20px;
 }
+.el-main{
+  padding-left: 0;
+}
+.el-menu{
+  background-color: rgba(255, 255, 255, 0.5);
+}
 .el-menu-item{
-  font-size: 15px;
-  /*height: 200px;*/
+  font-size: 25px;
+  height: 250px;
   text-align: center;
+  line-height: 250px;
+  font-family: "Microsoft JhengHei";
+}
+.el-menu-item.is-active {
+  color: #ee7951;
+}
+.el-menu-item:focus, .el-menu-item:hover {
+  outline: 0;
+  background-color: #fae3db;
+}
+.background{
+  width:100%;
+  height:100%;  /**宽高100%是为了图片铺满屏幕 */
+  z-index:-1;
+  position: absolute;
+}
+.image{
+  height: 100%;
+  width: 100%;
+  opacity: 20%;
 }
 </style>

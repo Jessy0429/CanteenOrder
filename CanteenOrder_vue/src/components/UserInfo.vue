@@ -225,6 +225,7 @@ export default {
       }
     },
     getData(){
+      console.log(this.UserID);
       // 使用 axios 向 flask 发送请求
       const url_ui = "http://127.0.0.1:5000/api/getUserInfo";
       // console.log(undefined.data)
@@ -266,6 +267,6 @@ export default {
 .el-collapse /deep/ .el-collapse-item__header{
   height: 80px;
   font-size: 25px;
-  color: #62a8f0;
+  color: #de907b;
 }
 </style>

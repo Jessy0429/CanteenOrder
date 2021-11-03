@@ -76,7 +76,7 @@ export default {
   font-size: 15px;
   font-family: "Microsoft JhengHei";
   font-weight: bold;
-  color: #62a8f0;
+  color: rgba(224, 129, 94, 0.99);;
 }
 .dishes{
   width: 300px;
