@@ -4,7 +4,7 @@
 /*==============================================================*/
 
 
-drop trigger Delstore;
+drop trigger if exists Delinventory;
 
 drop
 table if exists OrderbyDay;
@@ -20,7 +20,7 @@ drop index idx_dishname on Dish;
 create table Canteen
 (
    canteenID            bigint not null,
-   managerID            bigint not null,
+   managerID            bigint,
    canteenname          char(20),
    primary key (canteenID)
 );
@@ -51,7 +51,7 @@ create table Dish
    inventory            int not null,
    recommd              bool,
    typeID               int not null,
-   picture              longblob,
+   picture              char(20),
    primary key (dishID)
 );
 
@@ -96,10 +96,10 @@ create table `Order`
    orderID              bigint not null,
    userID               bigint not null,
    deliveredID          bigint not null,
-   dishware            int not null,
-   storeID              bigint not null,
-   o_time               datetime not null,
-   d_time               datetime not null,
+   dishware            	int not null,
+   canteenID            bigint not null,
+   o_time               char(20) not null,
+   d_time               char(20) not null,
    status               bool not null,
    primary key (orderID)
 );
@@ -136,23 +136,30 @@ create table User
    username              char(20) not null,
    telnumber            char(11) not null,
    password             char(50) not null,
-   deliveredID_default  bigint,
-   deliveredID_2        bigint,
-   deliveredID_3        bigint,
-   deliveredID_4        bigint,
-   deliveredID_5        bigint,
    primary key (userID)
 );
+
+/*==============================================================*/
+/* View: Ct_St                                          */
+/*==============================================================*/
+create VIEW  Ct_St
+as
+select
+   C.canteenID,
+   JSON_ARRAYAGG(S.storeID) storesID
+from
+   Store S join Canteen C on S.canteenID = C.canteenID
+group by C.canteenID;
 
 /*==============================================================*/
 /* View: OrderInfo                                              */
 /*==============================================================*/
 create VIEW  OrderInfo
 as
-select O.orderID, User.username, D.consignee, D.address, O.dishware, O.storeID, O.d_time, concat(Dish.dishname, OD.dishnumber) as dish
-from `Order` as O join DeliveredInfo as D join User join Order_Dish as OD join Dish
+select O.orderID, User.userID, User.username, D.consignee, D.telephone, D.address, O.dishware, C.canteenname, O.o_time, O.d_time, JSON_ARRAYAGG(concat(Dish.dishname, '   X ', OD.dishnumber))as dishes, O.status
+from `Order` as O join DeliveredInfo as D join User join Order_Dish as OD join Dish join Canteen as C
     on O.orderID = OD.orderID and O.userID = User.userID and O.deliveredID = D.deliveredID
-    and OD.dishID = Dish.dishID
+    and OD.dishID = Dish.dishID and C.canteenID = O.canteenID
 group by O.orderID;
 
 /*==============================================================*/
@@ -205,12 +212,13 @@ alter table Store add constraint FK_Canteen_Store foreign key (canteenID)
       references Canteen (canteenID) on delete restrict on update restrict;
 
 DELIMITER ;;
-create trigger Delstore
-    before delete on Store
+create trigger Delinventory
+    after insert on order_dish
     for each row
 begin
-delete from Dish
-where storeID = old.storeID;
+update Dish set Dish.inventory = Dish.inventory - new.dishnumber
+where dishID = new.dishID;
 end;;
 DELIMITER ;
+
 
